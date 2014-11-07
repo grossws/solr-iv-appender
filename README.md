@@ -1,14 +1,43 @@
 # Info
 
-Simple [UpdateRequestProcessor][solr-urp] and factory for [Apache Solr][solr].
 
-Each added/updated document passed this processor will receive last commited index version (generation in solr terms).
-Field should be _indexer_, _stored_ and _single-valued_.
+Index version appender and querying extension for [Apache Solr][solr].
+
+- [IndexVersionAppendingProcessorFactory](src/java/org/anenerbe/solr/IndexVersionAppendingProcessorFactory.java) (which is simple [UpdateRequestProcessor][solr-urp])
+
+  Each added/updated document passed this processor will receive last committed index version (generation in solr terms).
+  Field should be _indexer_, _stored_ and _single-valued_.
+
+- [IndexVersionHandler](src/java/org/anenerbe/solr/IndexVersionHandler.java) (which is simple [SolrRequestHandler][solr-rh])
+
+  Returns last committed index version in `iv` field
+
 
 [solr]: http://lucene.apache.org/
 [solr-urp]: https://github.com/apache/lucene-solr/blob/trunk/solr/core/src/java/org/apache/solr/update/processor/UpdateRequestProcessor.java
+[solr-rh]: https://github.com/apache/lucene-solr/blob/trunk/solr/core/src/java/org/apache/solr/request/SolrRequestHandler.java
 
 # Usage
+
+## IndexVersionHandler
+
+Add `org.anenerbe.solr.IndexVersionHandler` as handler to `solrconfig.xml`:
+
+```xml
+<config>
+  <!-- ... -->
+
+  <requestHandler name="/iv" class="org.anenerbe.solr.IndexVersionHandler">
+    <lst name="defaults">
+      <str name="wt">json</str>
+    </lst>
+  </requestHandler>
+
+  <!-- ... -->
+</config>
+```
+
+## IndexVersionAppendingProcessorFactory
 
 Add some field to solr `schema.xml`:
 
