@@ -9,6 +9,7 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.SchemaField;
 import org.apache.solr.update.AddUpdateCommand;
+import org.apache.solr.update.SolrCoreState;
 import org.apache.solr.update.processor.UpdateRequestProcessor;
 import org.apache.solr.update.processor.UpdateRequestProcessorFactory;
 import org.apache.solr.util.plugin.SolrCoreAware;
@@ -18,8 +19,6 @@ import java.io.IOException;
 import static org.apache.solr.common.SolrException.ErrorCode.SERVER_ERROR;
 
 public class IndexVersionAppendingProcessorFactory extends UpdateRequestProcessorFactory implements SolrCoreAware {
-  protected SolrCore core;
-
   protected String fieldName;
 
   @Override
@@ -47,13 +46,12 @@ public class IndexVersionAppendingProcessorFactory extends UpdateRequestProcesso
   @Override
   public void inform(SolrCore core)
       throws SolrException {
-    this.core = core;
     checkVersionField(fieldName, core.getLatestSchema());
   }
 
   @Override
   public UpdateRequestProcessor getInstance(SolrQueryRequest req, SolrQueryResponse resp, UpdateRequestProcessor next) {
-    return new IndexVersionAppendingProcessor(core, fieldName, next);
+    return new IndexVersionAppendingProcessor(req, fieldName, next);
   }
 
   public static void checkVersionField(String fieldName, IndexSchema schema)
@@ -81,20 +79,33 @@ public class IndexVersionAppendingProcessorFactory extends UpdateRequestProcesso
 
   static class IndexVersionAppendingProcessor extends UpdateRequestProcessor {
     private SolrCore core;
+    private SolrCoreState coreState;
     private String fieldName;
 
-    public IndexVersionAppendingProcessor(SolrCore core, String fieldName, UpdateRequestProcessor next) {
+    public IndexVersionAppendingProcessor(SolrQueryRequest req, String fieldName, UpdateRequestProcessor next) {
       super(next);
-      this.core = core;
+      this.core = req.getCore();
+      this.coreState = core.getSolrCoreState();
       this.fieldName = fieldName;
     }
 
     @Override
     public void processAdd(AddUpdateCommand cmd) throws IOException {
-      long gen = core.getDeletionPolicy().getLatestCommit().getGeneration();
-      cmd.getSolrInputDocument().setField(fieldName, gen);
+      // We should write result via underlying org.apache.solr.update.processor.RunUpdateProcessor
+      // before unlock to avoid race condition on latestCommit
+      // (which can change between this call and actual document adding to index without a lock).
+      //
+      // Since latestCommit change only after hard commit (which use same commitLock) it's safe.
+      try {
+        coreState.getCommitLock().lock();
 
-      super.processAdd(cmd);
+        long gen = core.getDeletionPolicy().getLatestCommit().getGeneration();
+        cmd.getSolrInputDocument().setField(fieldName, gen);
+
+        super.processAdd(cmd);
+      } finally {
+        coreState.getCommitLock().unlock();
+      }
     }
   }
 }
