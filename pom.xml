@@ -46,6 +46,12 @@
     </resources>
   </build>
 
+  <scm>
+    <connection>scm:git:https://github.com/grossws/solr-iv-appender.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/grossws/solr-iv-appender.git</developerConnection>
+    <tag>master</tag>
+  </scm>
+
   <licenses>
     <license>
       <name>MIT</name>
