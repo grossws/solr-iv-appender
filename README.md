@@ -19,7 +19,7 @@ Add some field to solr `schema.xml`:
 </schema>
 ```
 
-and `org.anenerbe.solr.IndexVersionAppendingProcessorFactory` to some `updateRequestProcessorChain` in `solrconfig.xml`:
+and `org.anenerbe.solr.IndexVersionAppendingProcessorFactory` to some `updateRequestProcessorChain` to `solrconfig.xml`:
 
 ```xml
 <config>
