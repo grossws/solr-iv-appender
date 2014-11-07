@@ -2,6 +2,9 @@
 
 Simple [UpdateRequestProcessor][solr-urp] and factory for [Apache Solr][solr].
 
+Each added/updated document passed this processor will receive last commited index version (generation in solr terms).
+Field should be _indexer_, _stored_ and _single-valued_.
+
 [solr]: http://lucene.apache.org/
 [solr-urp]: https://github.com/apache/lucene-solr/blob/trunk/solr/core/src/java/org/apache/solr/update/processor/UpdateRequestProcessor.java
 
