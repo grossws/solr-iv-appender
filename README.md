@@ -6,7 +6,7 @@ Index version appender and querying extension for [Apache Solr][solr].
 - [IndexVersionAppendingProcessorFactory](src/java/org/anenerbe/solr/IndexVersionAppendingProcessorFactory.java) (which is simple [UpdateRequestProcessor][solr-urp])
 
   Each added/updated document passed this processor will receive last committed index version (generation in solr terms).
-  Field should be _indexer_, _stored_ and _single-valued_.
+  Field should be _indexed_, _stored_ and _single-valued_.
 
   Since adding document via this processor requires commit lock (to prevent race condition on index version)
   it should be placed near to [RunUpdateProcessorFactory][solr-rup-urp]
