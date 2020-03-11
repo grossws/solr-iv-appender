@@ -1,5 +1,8 @@
-# Info
+# Status
 
+Repository is **archived**, project is quite hibernated
+
+# Info
 
 Index version appender and querying extension for [Apache Solr][solr].
 
